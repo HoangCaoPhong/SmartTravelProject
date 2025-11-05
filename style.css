@@ -1,12 +1,20 @@
-/* style.css */
-.stContainer {
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-    transition: 0.3s;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
+/* style.css - SmartTravel Custom Styles */
+
+/* Card styling for st.container */
+[data-testid="stVerticalBlock"] {
+    transition: box-shadow 0.3s ease;
 }
 
-.stContainer:hover {
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+/* Hover effects for cards */
+.stContainer:has([data-testid="stVerticalBlock"]) {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    [data-testid="stVerticalBlock"] {
+        padding: 8px !important;
+    }
 }

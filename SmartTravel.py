@@ -1,112 +1,81 @@
 import streamlit as st
-import sqlite3
-import bcrypt
-import pandas as pd
-import os
+from streamlit_option_menu import option_menu
+from auth import render_login_page
+from page_dashboard import render_dashboard
+from page_discover import render_discover_page
+from page_home import render_home_page, render_about_page, render_features_page
+from page_recognize import render_recognition_page
+from page_profile import render_profile_page
+from db_utils import init_db
+from constants import PAGE_TITLE, PAGE_LAYOUT, PRIMARY_COLOR, BACKGROUND_COLOR
 
-# SmartTravel.py (dòng đầu tiên)
+# --- Cấu hình Trang & Theme ---
 st.set_page_config(
-    page_title="SmartTravelProject",
-    page_icon="✈️",
-    layout="wide",
-    # Cấu hình theme màu xanh chủ đạo
-    initial_sidebar_state="expanded"
+    page_title=PAGE_TITLE,
+    layout=PAGE_LAYOUT,
 )
 
 # Apply custom CSS
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Database Initialization
-DATABASE_NAME = "smarttravel.db"
-
-def init_db():
-    with sqlite3.connect(DATABASE_NAME) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
-            )
-        """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS search_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                query TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS collections (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                name TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS saved_places (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                collection_id INTEGER,
-                place_name TEXT,
-                address TEXT,
-                image_url TEXT,
-                latitude REAL,
-                longitude REAL,
-                FOREIGN KEY (collection_id) REFERENCES collections(id)
-            )
-        """)
-        conn.commit()
-
 # Ensure database is initialized on startup
 init_db()
 
-# Session state initialization
+# --- Khởi tạo Session State ---
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 if 'username' not in st.session_state:
-    st.session_state['username'] = None
+    st.session_state['username'] = ""
 if 'user_id' not in st.session_state:
     st.session_state['user_id'] = None
 
-# Redirect if logged in
-if st.session_state.get('logged_in'):
-    st.switch_page("pages/1_Dashboard.py")
+# --- A. LOGIC ĐIỀU HƯỚNG (PHẦN CHÍNH) ---
 
-# Public Homepage UI
-st.title("Chào mừng đến với SmartTravelProject ✈️")
+if not st.session_state['logged_in']:
+    # ---- 1. GIAO DIỆN CHƯA ĐĂNG NHẬP (NAV NGANG CÔNG KHAI) ----
+    selected = option_menu(
+        menu_title=None,
+        options=["Home", "About", "Tính năng", "Đăng nhập"],
+        icons=["house", "info-circle", "star", "box-arrow-in-right"],
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": BACKGROUND_COLOR},
+            "nav-link-selected": {"background-color": PRIMARY_COLOR},
+        }
+    )
+    
+    if selected == "Home":
+        render_home_page()
+    elif selected == "About":
+        render_about_page()
+    elif selected == "Tính năng":
+        render_features_page()
+    elif selected == "Đăng nhập":
+        render_login_page()
 
-st.write("Khám phá thế giới với SmartTravelProject - người bạn đồng hành thông minh cho mọi chuyến đi!")
+else:
+    # ---- 2. GIAO DIỆN ĐÃ ĐĂNG NHẬP (NAV NGANG THÀNH VIÊN) ----
+    selected = option_menu(
+        menu_title=PAGE_TITLE,
+        options=["Dashboard", "Khám phá", "Nhận diện", "Hồ sơ", "Đăng xuất"],
+        icons=["speedometer2", "search", "image", "person-circle", "box-arrow-left"],
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": BACKGROUND_COLOR},
+            "nav-link-selected": {"background-color": PRIMARY_COLOR},
+        }
+    )
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.image("https://via.placeholder.com/150/0000FF/FFFFFF?text=Search", caption="Tìm kiếm địa điểm")
-    st.subheader("Tìm kiếm thông minh")
-    st.write("Dễ dàng tìm kiếm hàng ngàn địa điểm du lịch, nhà hàng, khách sạn.")
-
-with col2:
-    st.image("https://via.placeholder.com/150/FF0000/FFFFFF?text=AI+Detect", caption="Nhận diện địa điểm")
-    st.subheader("Nhận diện AI")
-    st.write("Tải ảnh lên và để AI của chúng tôi nhận diện địa điểm cho bạn.")
-
-with col3:
-    st.image("https://via.placeholder.com/150/00FF00/FFFFFF?text=Plan+Trip", caption="Lên kế hoạch chuyến đi")
-    st.subheader("Lên kế hoạch")
-    st.write("Lưu lại những địa điểm yêu thích và tạo bộ sưu tập cho chuyến đi của bạn.")
-
-st.markdown("---")
-
-st.subheader("Bắt đầu hành trình của bạn ngay hôm nay!")
-login_col, register_col = st.columns(2)
-
-with login_col:
-    if st.button("Đăng nhập", type="primary", use_container_width=True):
-        st.switch_page("pages/2_Dang_nhap.py")
-
-with register_col:
-    if st.button("Đăng ký", use_container_width=True):
-        st.switch_page("pages/2_Dang_nhap.py")
+    if selected == "Dashboard":
+        render_dashboard(st.session_state.get('username', ''))
+    elif selected == "Khám phá":
+        render_discover_page()
+    elif selected == "Nhận diện":
+        render_recognition_page()
+    elif selected == "Hồ sơ":
+        render_profile_page()
+    elif selected == "Đăng xuất":
+        st.session_state.clear()
+        st.session_state['logged_in'] = False
+        st.rerun()
