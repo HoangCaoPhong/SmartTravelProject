@@ -90,9 +90,18 @@ html, body {
 
 /* === Streamlit Overrides === */
 
-/* Main app background */
+/* Main app background - force white everywhere */
 .stApp {
-    background-color: #FFFFFF;
+    background-color: #FFFFFF !important;
+}
+
+.stApp > header {
+    background-color: #FFFFFF !important;
+}
+
+/* Main content wrapper */
+.main {
+    background-color: #FFFFFF !important;
 }
 
 /* Remove default Streamlit padding */
@@ -101,6 +110,13 @@ html, body {
     padding-bottom: 2rem;
     max-width: 1200px;
     background-color: #FFFFFF;
+}
+
+/* Force all backgrounds to white */
+section[data-testid="stSidebar"] > div,
+[data-testid="stHeader"],
+[data-testid="stToolbar"] {
+    background-color: #FFFFFF !important;
 }
 
 /* Hide Streamlit branding */
@@ -252,12 +268,48 @@ h3 {
 }
 
 /* === Navigation Menu === */
+/* Force nav container to be full width */
+div[data-testid="stVerticalBlock"]:has(div.menu) {
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Navigation menu wrapper */
+div.menu {
+    background: #E8F1FA !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0.5rem 0 !important;
+}
+
+/* Streamlit option menu container */
+.container-xxl {
+    background: #E8F1FA !important;
+}
+
 nav[data-testid="stHorizontalBlock"] {
-    background: var(--white);
+    background: #E8F1FA;
     box-shadow: var(--shadow-md);
     padding: var(--spacing-sm) 0;
     margin-bottom: var(--spacing-xl);
     border-radius: var(--radius-lg);
+    width: 100%;
+}
+
+/* Remove any black gaps in nav */
+nav[data-testid="stHorizontalBlock"] > div {
+    background: #E8F1FA !important;
+    width: 100%;
+}
+
+/* Style for menu title (SmartTravel) */
+.css-1544g2n, .css-10trblm {
+    color: #000000 !important;
+    font-weight: 700 !important;
 }
 
 /* === Sidebar === */
@@ -518,4 +570,25 @@ img {
     padding: var(--spacing-lg);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-md);
+}
+
+/* Page title "Đăng nhập / Đăng ký" */
+h1#dang-nhap-dang-ky {
+    color: #000000 !important;
+}
+
+/* All h1, h2, h3 headings in main content */
+.main h1, .main h2, .main h3 {
+    color: #000000 !important;
+}
+
+/* Form submit buttons - white text */
+button[kind="secondaryFormSubmit"] {
+    background: var(--primary-blue) !important;
+    color: #FFFFFF !important;
+}
+
+button[kind="secondaryFormSubmit"] p,
+button[kind="secondaryFormSubmit"] div {
+    color: #FFFFFF !important;
 }

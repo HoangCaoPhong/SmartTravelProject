@@ -23,7 +23,7 @@ st.set_page_config(
 
 # Apply custom CSS
 css_path = os.path.join(os.path.dirname(__file__), "static", "css", "style.css")
-with open(css_path) as f:
+with open(css_path, encoding='utf-8') as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # Ensure database is initialized on startup
@@ -47,7 +47,7 @@ if not st.session_state['logged_in']:
         icons=["house", "info-circle", "star", "box-arrow-in-right"],
         orientation="horizontal",
         styles={
-            "container": {"padding": "0!important", "background-color": "#E8F1FA"},
+            "container": {"padding": "0!important", "background-color": "#E8F1FA", "width": "100%"},
             "nav-link": {"color": "#000000", "font-weight": "500"},
             "nav-link-selected": {"background-color": PRIMARY_COLOR, "color": "#FFFFFF"},
         }
@@ -70,9 +70,10 @@ else:
         icons=["speedometer2", "search", "image", "person-circle", "box-arrow-left"],
         orientation="horizontal",
         styles={
-            "container": {"padding": "0!important", "background-color": "#E8F1FA"},
+            "container": {"padding": "0!important", "background-color": "#E8F1FA", "width": "100%"},
             "nav-link": {"color": "#000000", "font-weight": "500"},
             "nav-link-selected": {"background-color": PRIMARY_COLOR, "color": "#FFFFFF"},
+            "menu-title": {"color": "#000000", "font-weight": "600"},
         }
     )
 

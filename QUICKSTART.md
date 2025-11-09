@@ -158,7 +158,6 @@ streamlit run SmartTravel.py
 3. **Phase 3** (Future)
    - [ ] User analytics
    - [ ] Social features
-   - [ ] Mobile app
    - [ ] Advanced filtering
 
 ## 💡 Tips

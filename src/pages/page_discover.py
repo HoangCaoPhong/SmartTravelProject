@@ -14,15 +14,32 @@ def render_discover_page():
         <div style="
             background: linear-gradient(135deg, #1E88E5 0%, #26A69A 100%);
             color: white;
-            padding: 2rem;
+            padding: 3rem;
             border-radius: 12px;
             margin-bottom: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
         ">
-            <h1 style="color: white; margin: 0;">🔍 Khám phá địa điểm</h1>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Tìm kiếm và khám phá những địa điểm tuyệt vời</p>
+            <h1 style="color: white; margin: 0; font-size: 3rem;">🔍 Khám phá địa điểm</h1>
+            <p style="margin: 1rem 0 0 0; opacity: 0.9; font-size: 1.2rem;">Tìm kiếm và khám phá những địa điểm tuyệt vời</p>
         </div>
     """, unsafe_allow_html=True)
+    
+    st.markdown("""
+        <div style="
+            background: #FFF3CD;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #FFC107;
+            margin: 3rem auto;
+            max-width: 600px;
+        ">
+            <h2 style="color: #856404; margin: 0 0 1rem 0;">🚧 Đang phát triển</h2>
+            <p style="color: #856404; font-size: 1.1rem; margin: 0;">Tính năng này đang được phát triển và sẽ sớm ra mắt!</p>
+        </div>
+    """, unsafe_allow_html=True)
+    return
 
     # Sidebar for filters
     st.sidebar.header("Bộ lọc tìm kiếm")
