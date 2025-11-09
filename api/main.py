@@ -8,6 +8,13 @@ from core.solver_route import load_pois, plan_route
 
 app = FastAPI(title="Smart Travel AI")
 
+@app.get("/")
+def home():
+    return {
+        "message": "Smart Travel AI API is running. Visit /docs to test.",
+        "docs": "http://127.0.0.1:8000/docs"
+    }
+
 @app.post("/plan")
 def plan(input_data: dict):
     csv_path = "data/pois_hcm.csv"
