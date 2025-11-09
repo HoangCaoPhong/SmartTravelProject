@@ -203,26 +203,28 @@ init_db()
 # --- Khởi tạo Session State với Flask backend ---
 import requests as req
 
-# Try to restore session from Flask backend
-if 'session_checked' not in st.session_state:
-    try:
-        response = req.get('http://localhost:5000/api/session', timeout=1)
-        if response.ok:
-            data = response.json()
-            st.session_state['logged_in'] = data.get('logged_in', False)
-            st.session_state['username'] = data.get('username', '')
-            st.session_state['user_id'] = data.get('user_id', None)
-    except:
-        # Flask backend not running, use default values
-        pass
-    st.session_state['session_checked'] = True
-
+# Initialize default values first
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 if 'username' not in st.session_state:
     st.session_state['username'] = ""
 if 'user_id' not in st.session_state:
     st.session_state['user_id'] = None
+
+# ALWAYS try to restore session from Flask backend on every page load
+# This ensures session persists across browser refreshes (F5)
+try:
+    response = req.get('http://localhost:5000/api/session', timeout=2)
+    if response.ok:
+        data = response.json()
+        # Only update if Flask has valid session data
+        if data.get('logged_in', False):
+            st.session_state['logged_in'] = data['logged_in']
+            st.session_state['username'] = data.get('username', '')
+            st.session_state['user_id'] = data.get('user_id', None)
+except Exception as e:
+    # Flask backend not running or error - keep current session state
+    pass
 
 # Sync session to Flask backend whenever it changes
 def sync_session_to_backend():

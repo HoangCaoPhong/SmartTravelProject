@@ -59,15 +59,32 @@ git clone https://github.com/HoangCaoPhong/SmartTravelProject.git
 cd SmartTravelProject
 ```
 
-### 2. Cài đặt dependencies
+### 2. Tạo môi trường ảo (Virtual Environment)
+**Khuyến nghị:** Tạo môi trường ảo để tránh xung đột với các thư viện Python có sẵn trên hệ thống.
+
+```bash
+# Tạo môi trường ảo
+python -m venv venv
+
+# Kích hoạt môi trường ảo
+# Trên Windows:
+venv\Scripts\activate
+
+# Trên macOS/Linux:
+source venv/bin/activate
+```
+
+### 3. Cài đặt dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Chạy ứng dụng
+### 4. Chạy ứng dụng
 ```bash
-streamlit run SmartTravel.py
+.\start.ps1
 ```
+
+**Lưu ý:** Đảm bảo môi trường ảo đã được kích hoạt trước khi chạy ứng dụng.
 
 ## 📦 Dependencies
 
@@ -148,39 +165,3 @@ PRIMARY_COLOR = "#1E88E5"
 - Session-based authentication
 - Secure login/register system
 - Password validation rules
-
-## 🛣️ Roadmap
-
-### Phase 1 (Current)
-- ✅ UI/UX redesign
-- ✅ Project structure reorganization
-- ✅ Authentication system
-- ✅ Database setup
-
-### Phase 2 (Coming Soon)
-- 🔄 AI image recognition integration
-- 🔄 Search API integration
-- 🔄 Recommendation system
-- 🔄 Map integration
-
-### Phase 3 (Future)
-- 📋 Advanced filtering
-- 📊 Analytics dashboard
-- 🌐 Multi-language support
-- 📱 Mobile app version
-
-## 👥 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📧 Contact
-
-For questions or support, please open an issue on GitHub.
-
----
-
-Made with ❤️ by SmartTravel Team

@@ -12,7 +12,11 @@ Start-Sleep -Seconds 2
 
 # Start Streamlit
 Write-Host "Starting Streamlit on port 8501..." -ForegroundColor Cyan
-streamlit run SmartTravel.py
+python -m streamlit run .\smarttravel.py --server.port 8501
+
+# Wait for Streamlit to start
+Start-Sleep -Seconds 2
+Write-Host "SmartTravel is running!" -ForegroundColor Green
 
 # Note: Press Ctrl+C to stop. You may need to manually kill the Flask process
 Write-Host "To stop Flask backend, run: Stop-Process -Name python -Force" -ForegroundColor Yellow
