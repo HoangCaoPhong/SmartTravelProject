@@ -90,17 +90,14 @@ html, body {
 
 /* === Streamlit Overrides === */
 
-/* Main app background - force white everywhere */
-.stApp {
-    background-color: #FFFFFF !important;
-}
-
-.stApp > header {
-    background-color: #FFFFFF !important;
-}
-
-/* Main content wrapper */
-.main {
+/* Force white background everywhere - highest priority */
+.stApp,
+.stApp > header,
+.stApp [data-testid="stAppViewContainer"],
+.main,
+[data-testid="stAppViewContainer"],
+[data-testid="stDecoration"],
+body {
     background-color: #FFFFFF !important;
 }
 
@@ -117,6 +114,12 @@ section[data-testid="stSidebar"] > div,
 [data-testid="stHeader"],
 [data-testid="stToolbar"] {
     background-color: #FFFFFF !important;
+}
+
+/* Remove any dark theme remnants */
+.stApp::before,
+.stApp::after {
+    display: none !important;
 }
 
 /* Hide Streamlit branding */

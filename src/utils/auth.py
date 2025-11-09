@@ -106,6 +106,9 @@ def register_user(username, password):
 def render_login_page():
     """Render login and registration UI."""
     st.title("Đăng nhập / Đăng ký")
+    
+    # Note about session persistence
+    st.info("ℹ️ Lưu ý: Phiên đăng nhập sẽ tự động kết thúc khi tải lại trang (F5). Đây là hành vi bình thường của Streamlit.")
 
     tab1, tab2 = st.tabs(["Đăng nhập", "Đăng ký"])
 

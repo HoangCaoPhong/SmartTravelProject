@@ -26,10 +26,73 @@ css_path = os.path.join(os.path.dirname(__file__), "static", "css", "style.css")
 with open(css_path, encoding='utf-8') as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+# Additional CSS to force white background and remove black bars
+st.markdown("""
+    <style>
+        /* Force white background everywhere */
+        .stApp, .main, body, html {
+            background-color: #FFFFFF !important;
+        }
+        
+        /* Remove black decoration bars */
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+        
+        /* Force white for app view container */
+        [data-testid="stAppViewContainer"] {
+            background-color: #FFFFFF !important;
+        }
+        
+        /* Target the parent container of option-menu to remove black bars */
+        .element-container:has(div.menu),
+        div[data-testid="column"]:has(div.menu),
+        div[data-testid="stVerticalBlock"]:has(div.menu) {
+            background-color: #FFFFFF !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Force streamlit-option-menu parent background white */
+        .element-container {
+            background-color: #FFFFFF !important;
+        }
+        
+        /* Override any remaining black backgrounds */
+        * {
+            scrollbar-color: #888 #f1f1f1;
+        }
+        
+        /* Ensure no dark theme classes apply */
+        [data-theme="dark"] {
+            display: none !important;
+        }
+        
+        /* Force menu wrapper background */
+        .menu, .menu * {
+            background-color: transparent !important;
+        }
+        
+        .menu .container-xxl {
+            background-color: #E8F1FA !important;
+        }
+        
+        /* Navigation full width fix */
+        .main .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Ensure database is initialized on startup
 init_db()
 
 # --- Khởi tạo Session State ---
+# Note: Streamlit session state is cleared on page refresh
+# This is normal behavior - users need to re-login after refresh
+# To persist login, we would need a proper backend with JWT tokens
+
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 if 'username' not in st.session_state:
