@@ -1,0 +1,580 @@
+import streamlit as st
+from datetime import time
+from streamlit_option_menu import option_menu
+import json
+import os
+
+st.set_page_config(
+    page_title="Smart 1-Day Trip Planner",
+    layout="wide",  
+    initial_sidebar_state="collapsed"
+)
+
+def load_css(file_name):
+    """Tải file CSS để áp dụng vào ứng dụng."""
+    with open(file_name, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_css("style.css")
+
+# ======================
+# BIẾN CẤU HÌNH MENU
+# ======================
+MENU_STYLES = {
+    "container": {
+        "padding": "0.4rem 1.2rem",
+        "background-color": "#FFFFFF",
+        "border": "2px solid #2563EB",
+        "border-radius": "999px",
+        "margin-bottom": "1.2rem",
+        "margin-left": "1rem",
+        "margin-right": "1rem",
+    },
+    "nav-link": {
+        "font-size": "0.95rem",
+        "font-weight": "500",
+        "color": "#0F172A",
+        "background-color": "transparent",
+        "border-radius": "0.5rem",
+        "margin": "0.2rem 0.2rem",
+        "text-align": "center",
+        "padding": "0.6rem 1.2rem",
+        "--hover-color": "#EFF6FF",
+    },
+    "nav-link-selected": {
+        "background-color": "transparent",
+        "color": "#2563EB",
+        "font-weight": "600",
+        "border-radius": "0",
+        "border-bottom": "3px solid #2563EB",
+    },
+    "icon": {
+        "font-size": "1.1rem",
+        "margin-right": "0.45rem",
+    },
+}
+
+# ======================
+# Json
+# ======================
+DB_FILE = "database.json"
+
+def load_database():
+    """Tải CSDL từ file JSON."""
+    if not os.path.exists(DB_FILE):
+        return {"users": {}, "user_data": {}}
+    try:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {"users": {}, "user_data": {}}
+
+def save_database(data):
+    """Lưu toàn bộ CSDL ra file JSON."""
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+if "db_loaded" not in st.session_state:
+    db_data = load_database()
+    st.session_state["users"] = db_data.get("users", {})
+    st.session_state["user_data"] = db_data.get("user_data", {})
+    st.session_state["db_loaded"] = True
+
+if "current_user" not in st.session_state:
+    st.session_state["current_user"] = None
+if "latest_schedule" not in st.session_state:
+    st.session_state["latest_schedule"] = None
+
+# ======================
+# Hàm tiện ích
+# ======================
+def time_to_minutes(t: time) -> int:
+    return t.hour * 60 + t.minute
+
+def minutes_to_str(m: int) -> str:
+    h = m // 60
+    mm = m % 60
+    return f"{h:02d}:{mm:02d}"
+
+# ======================
+# SIDEBAR
+# ======================
+with st.sidebar:
+    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("---")
+    st.sidebar.caption("© 2025 Smart 1-Day Trip Planner")
+
+# ======================================================
+# CÁC HÀM XỬ LÝ CÁC TRANG
+# ======================================================
+
+def page_trang_chu():
+    """Hiển thị nội dung trang chủ."""
+    col_text, col_image = st.columns([1.05, 1], gap="large")
+    with col_text:
+        st.markdown(
+            "<div class='badge-pill'>✨ Smart 1-Day Trip Planner</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            <h1 class='home-title'
+                style='font-size: 3.4rem; font-weight: 750; line-height: 1.15; margin-bottom: 1.2rem; margin-top: 1.2rem;'>
+                1 CÂU GIỚI THIỆU.
+            </h1>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.write(
+            "Chỉ cần nhập điểm đến, ngân sách và thời gian rảnh, hệ thống sẽ giúp bạn tạo lịch trình "
+            "du lịch **thông minh – nhanh chóng – tối ưu** cho một ngày."
+        )
+
+        st.markdown("#### Điểm nổi bật")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.caption("⏱️ Tối ưu thời gian")
+        with c2:
+            st.caption("💸 Cân đối chi phí")
+        with c3:
+            st.caption("🧭 Dễ dùng cho mọi người")
+
+        st.markdown("")
+        s1, s2, s3 = st.columns(3)
+        with s1:
+            st.markdown(
+                """
+                <div class='home-stat-card'>
+                    <div class='home-stat-label'>Thời gian chuẩn bị</div>
+                    <div class='home-stat-value'>~ 2 phút</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with s2:
+            st.markdown(
+                """
+                <div class='home-stat-card'>
+                    <div class='home-stat-label'>Số điểm đến trong ngày</div>
+                    <div class='home-stat-value'>3 – 6 điểm</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with s3:
+            st.markdown(
+                """
+                <div class='home-stat-card'>
+                    <div class='home-stat-label'>Trải nghiệm</div>
+                    <div class='home-stat-value'>Thoải mái</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with col_image:
+        st.image(
+            "https_images.unsplash.com/photo-1500835556837-99ac94a94552?w=900&auto=format&fit=crop&q=60"
+            .replace("_", "://"),
+            use_container_width=True,
+            output_format="PNG",
+        )
+
+def page_gioi_thieu():
+    """Hiển thị nội dung trang giới thiệu."""
+    st.markdown("<div class='section-title'>Giới thiệu đề tài</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-subtitle'>Tổng quan ngắn gọn về hệ thống du lịch thông minh tối ưu hóa lịch trình trong 1 ngày.</div>",
+        unsafe_allow_html=True,
+    )
+    st.write(
+        """Thông tin các tv""")
+
+def page_chuc_nang():
+    """Hiển thị nội dung trang chức năng."""
+    st.markdown("<div class='section-title'>Chức năng chính</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-subtitle'>Bạn có thể bắt đầu với việc tạo danh sách gợi ý, tìm đường đi hoặc nhận diện ảnh.</div>",
+        unsafe_allow_html=True,
+    )
+    tab_gợi_ý, tab_tìm_đường, tab_nhận_diện = st.tabs(
+        ["Tạo danh sách gợi ý", "Tìm đường đi", "Nhận diện ảnh "]
+    )
+
+    # 1. Tạo danh sách gợi ý
+    with tab_gợi_ý:
+        st.markdown("### 🧩 1. Tạo danh sách gợi ý")
+        st.markdown(
+            "<p class='feature-muted'>Nhập các điểm bạn quan tâm, hệ thống sẽ gợi ý danh sách địa điểm phù hợp với ngân sách và thời gian.</p>",
+            unsafe_allow_html=True,
+        )
+        col_left, col_right = st.columns([1.2, 1])
+        with col_left:
+            interests = st.text_area(
+                "Sở thích / loại địa điểm (ví dụ: bảo tàng, quán cà phê, biển, công viên...)",
+                height=120,
+            )
+            budget_suggest = st.number_input(
+                "Ngân sách dự kiến (VND)",
+                min_value=0,
+                value=500000,
+                step=50000,
+            )
+            city = st.text_input("Thành phố / khu vực", value="TP.HCM")
+            if st.button("Tạo danh sách gợi ý"):
+                st.success("Đây là nơi bạn sẽ hiển thị danh sách gợi ý địa điểm .")
+        with col_right:
+            st.markdown("#### Gợi ý mô tả ")
+            st.write("- Ưu tiên các địa điểm gần nhau để giảm thời gian di chuyển.")
+            st.write("- Cân đối giữa tham quan, ăn uống và thư giãn.")
+            st.write("- Có thể kết hợp 1–2 điểm “must-try” trong khu vực bạn chọn.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # 2. Tìm đường đi
+    with tab_tìm_đường:
+        st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+        st.markdown("### 🚗 2. Tìm đường đi")
+        st.markdown(
+            "<p class='feature-muted'>Hỗ trợ tìm đường đi tối ưu giữa các địa điểm, tính toán thời gian và chi phí di chuyển .</p>",
+            unsafe_allow_html=True,
+        )
+        with st.form("route_form"):
+            start_point = st.text_input("Điểm bắt đầu", value="Quận 1")
+            end_point = st.text_input("Điểm kết thúc", value="Nhà thờ Đức Bà")
+            col1, col2 = st.columns(2)
+            with col1:
+                mode = st.selectbox(
+                    "Phương tiện di chuyển",
+                    ["Xe máy", "Ô tô", "Đi bộ", "Phương tiện công cộng"],
+                )
+            with col2:
+                max_time = st.number_input(
+                    "Thời gian tối đa (phút)",
+                    min_value=10,
+                    value=45,
+                    step=5,
+                )
+            c1, c2, c3 = st.columns([2, 1, 2])
+            with c2:
+                find_route = st.form_submit_button("Tìm đường!")
+        if find_route:
+            st.markdown("---")
+            st.markdown("#### Kết quả ")
+            st.write(f"- **Từ**: {start_point}")
+            st.write(f"- **Đến**: {end_point}")
+            st.write(f"- **Phương tiện**: {mode}")
+            st.write(f"- **Thời gian ước tính**: ~{max_time} phút")
+            st.info(
+                "Phiên bản đầy đủ có thể tích hợp API bản đồ (Google Maps, OpenStreetMap, v.v.) để tính đường thực tế."
+            )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # 3. Nhận diện ảnh
+    with tab_nhận_diện:
+        st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+        st.markdown("### 📷 3. Nhận diện ảnh ")
+        st.markdown(
+            "<p class='feature-muted'>Tải lên một bức ảnh địa điểm, hệ thống sẽ thử đoán đó là loại địa điểm nào .</p>",
+            unsafe_allow_html=True,
+        )
+        img = st.file_uploader("Tải ảnh địa điểm (JPG/PNG)", type=["jpg", "jpeg", "png"])
+        if img is not None:
+            st.image(img, use_container_width=True)
+            st.success(
+                ": Hệ thống có thể trả về nhãn như 'biển', 'núi', 'cafe', 'trung tâm thương mại'..."
+            )
+        else:
+            st.caption("📷 Chưa có ảnh nào được chọn.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+def page_len_lich_trinh():
+    """Hiển thị nội dung trang Lên lịch trình."""
+    st.markdown("<div class='section-title'>Lên lịch trình 1 ngà</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-subtitle'>Form minh họa cách người dùng nhập thông tin. Kết quả hiện tại chỉ là , chưa có thuật toán tối ưu thực tế.</div>",
+        unsafe_allow_html=True,
+    )
+
+    col_form, col_result = st.columns([1.1, 1], gap="large")
+    with col_form:
+        st.markdown("### 📝 Nhập thông tin chuyến đi")
+        with st.form("planner_form"):
+            start_location = st.text_input("Điểm xuất phát", value="Quận 1, TP.HCM")
+            destinations_text = st.text_area(
+                "Danh sách điểm muốn đến (mỗi dòng một địa điểm)",
+                value="Nhà thờ Đức Bà\nPhố đi bộ Nguyễn Huệ\nLandmark 81",
+                height=150,
+            )
+            food_text = st.text_area(
+                "Danh sách món ăn / quán ăn muốn thử (mỗi dòng một món hoặc một quán)",
+                value="Phở bò\nBánh mì thịt\nTrà sữa\nHủ tiếu",
+                height=120,
+            )
+            c1, c2 = st.columns(2)
+            with c1:
+                start_time = st.time_input("Giờ bắt đầu", value=time(8, 0))
+            with c2:
+                end_time = st.time_input("Giờ kết thúc", value=time(20, 0))
+            budget = st.number_input(
+                "Ngân sách tối đa (VND)",
+                min_value=0,
+                value=800000,
+                step=50000,
+            )
+            submitted = st.form_submit_button("Tạo lịch trình ")
+
+        if not submitted:
+            st.caption("⏳ Nhập xong và bấm **Tạo lịch trình** để xem kết quả.")
+            st.session_state["latest_schedule"] = None
+
+    with col_result:
+        st.markdown("### 📆 Kết quả lịch trình")
+        if not submitted:
+            st.info(
+                "Kết quả sẽ hiển thị ở đây sau khi bạn bấm nút. "
+            )
+        else:
+            dest_lines = [line.strip() for line in destinations_text.splitlines() if line.strip()]
+            food_lines = [line.strip() for line in food_text.splitlines() if line.strip()]
+
+            if not dest_lines:
+                st.error("Vui lòng nhập ít nhất 1 điểm đến.")
+            else:
+                start_min = time_to_minutes(start_time)
+                end_min = time_to_minutes(end_time)
+                if end_min <= start_min:
+                    st.warning("Giờ kết thúc phải lớn hơn giờ bắt đầu. Đang dùng mặc định 08:00 – 20:00.")
+                    start_min = 8 * 60
+                    end_min = 20 * 60
+
+                total_minutes = end_min - start_min
+                block = max(total_minutes // len(dest_lines), 30)
+                current = start_min
+
+                st.write(f"**Điểm xuất phát:** {start_location}")
+                st.write(f"**Thời gian tổng:** {minutes_to_str(start_min)} – {minutes_to_str(end_min)}")
+                st.write(f"**Ngân sách tối đa:** {budget:,} VND")
+                st.markdown("---")
+                st.write("#### ⏱️ Timeline gợi ý")
+
+                schedule_data = {
+                    "id": f"{start_min}-{len(dest_lines)}",
+                    "start_location": start_location,
+                    "destinations": dest_lines,
+                    "food": food_lines,
+                    "start_time": minutes_to_str(start_min),
+                    "end_time": minutes_to_str(end_min),
+                    "budget": budget,
+                    "timeline": [],
+                }
+
+                for i, place in enumerate(dest_lines, start=1):
+                    arrive = current
+                    depart = min(current + block, end_min)
+                    current = depart
+                    schedule_data["timeline"].append(
+                        {
+                            "place": place,
+                            "arrive": minutes_to_str(arrive),
+                            "depart": minutes_to_str(depart),
+                        }
+                    )
+                    with st.expander(
+                        f"📍 {i}. {place} ({minutes_to_str(arrive)} – {minutes_to_str(depart)})"
+                    ):
+                        st.write(f"**Thời gian:** {minutes_to_str(arrive)} – {minutes_to_str(depart)}")
+                        st.write("**Hoạt động :** Tham quan, chụp ảnh, nghỉ ngơi.")
+                        st.write(f"**Chi phí gợi ý:** {budget // len(dest_lines):,} VND")
+
+                if food_lines:
+                    st.markdown("---")
+                    st.write("#### 🍽️ Danh sách món ăn / quán ăn muốn thử")
+                    for i, food in enumerate(food_lines, start=1):
+                        st.markdown(f"- {i}. {food}")
+
+                st.markdown("---")
+                st.session_state["latest_schedule"] = schedule_data
+
+                current_user_email = st.session_state.get("current_user")
+                if current_user_email:
+                    is_already_saved = False
+                    if current_user_email in st.session_state["user_data"]:
+                        saved_ids = [
+                            s["id"]
+                            for s in st.session_state["user_data"][current_user_email]["schedules"]
+                        ]
+                        if schedule_data["id"] in saved_ids:
+                            is_already_saved = True
+
+                    if is_already_saved:
+                        st.success("✅ Lịch trình này đã được lưu trong hồ sơ của bạn.")
+                    else:
+                        if st.button("💾 Lưu lịch trình này vào hồ sơ"):
+                            st.session_state["user_data"][current_user_email]["schedules"].append(
+                                schedule_data
+                            )
+                            db_data = {
+                                "users": st.session_state["users"],
+                                "user_data": st.session_state["user_data"],
+                            }
+                            save_database(db_data)
+                            st.success("Đã lưu lịch trình thành công!")
+                            st.rerun()
+
+def page_ho_so():
+    """Hiển thị nội dung trang Hồ sơ."""
+    st.markdown("<div class='section-title'>Hồ sơ của bạn</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-subtitle'>Xem lại tài khoản và các lịch trình đã lưu.</div>",
+        unsafe_allow_html=True,
+    )
+
+    if st.session_state.get("current_user"):
+        st.success(f"Bạn đang đăng nhập với tài khoản: **{st.session_state['current_user']}**")
+
+        st.markdown("### 👤 Thông tin tài khoản")
+        st.write(f"**Email:** {st.session_state['current_user']}")
+
+        st.markdown("### 🗂️ Lịch trình đã lưu")
+
+        user_email = st.session_state["current_user"]
+
+        if (
+            user_email not in st.session_state["user_data"]
+            or not st.session_state["user_data"][user_email]["schedules"]
+        ):
+            st.info("Bạn chưa có lịch trình nào được lưu. Hãy qua trang **Lên lịch trình** để tạo và lưu nhé!")
+        else:
+            schedules = st.session_state["user_data"][user_email]["schedules"]
+            st.write(f"Bạn có **{len(schedules)}** lịch trình đã lưu:")
+
+            for i in range(len(schedules) - 1, -1, -1):
+                schedule = schedules[i]
+                title = f"Lịch trình từ {schedule['start_location']} ({schedule['start_time']} – {schedule['end_time']})"
+
+                with st.expander("📅 " + title):
+                    st.write(f"**Điểm đến:** {', '.join(schedule['destinations'])}")
+                    if schedule["food"]:
+                        st.write(f"**Món ăn:** {', '.join(schedule['food'])}")
+                    st.write(f"**Ngân sách:** {schedule['budget']:,} VND")
+                    st.markdown("---")
+                    st.write("**Timeline chi tiết:**")
+                    for item in schedule["timeline"]:
+                        st.markdown(
+                            f"- **{item['place']}**: {item['arrive']} – {item['depart']}"
+                        )
+                    st.markdown("---")
+
+                    if st.button("🗑️ Xóa lịch trình này", key=f"delete_{i}"):
+                        st.session_state["user_data"][user_email]["schedules"].pop(i)
+                        db_data = {
+                            "users": st.session_state["users"],
+                            "user_data": st.session_state["user_data"],
+                        }
+                        save_database(db_data)
+                        st.success("Đã xóa lịch trình.")
+                        st.rerun()
+
+        st.markdown("---")
+        if st.button("Đăng xuất (Log out)"):
+            st.session_state["current_user"] = None
+            st.rerun()
+    else:
+        st.error("Bạn cần đăng nhập để xem trang này.")
+        st.info("Vui lòng chọn **Sign in / Sign up** từ thanh menu để đăng nhập.")
+
+def page_sign_in_up():
+    """Hiển thị nội dung trang Đăng nhập / Đăng ký."""
+    st.markdown("<div class='section-title'>Đăng nhập / Đăng ký</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-subtitle'>Quản lý tài khoản để lưu lại các lịch trình yêu thích của bạn.</div>",
+        unsafe_allow_html=True,
+    )
+
+    tab_signin, tab_signup = st.tabs(["Sign in", "Sign up"])
+
+    # SIGN IN
+    with tab_signin:
+        with st.form("signin_form"):
+            email_in = st.text_input("Email", key="signin_email")
+            password_in = st.text_input("Password", type="password", key="signin_pass")
+            submitted_in = st.form_submit_button("Sign in")
+
+        if submitted_in:
+            users = st.session_state["users"]
+            if not email_in or not password_in:
+                st.error("Vui lòng nhập đầy đủ Email và Password.")
+            elif email_in not in users:
+                st.error("Tài khoản không tồn tại. Hãy chọn Sign up để đăng ký.")
+            elif users[email_in] != password_in:
+                st.error("Sai mật khẩu.")
+            else:
+                st.session_state["current_user"] = email_in
+                st.success(f"Đăng nhập thành công! Xin chào **{email_in}** 🎉")
+                st.rerun()
+
+    # SIGN UP
+    with tab_signup:
+        with st.form("signup_form"):
+            email_up = st.text_input("Email", key="signup_email")
+            password_up = st.text_input("Password", type="password", key="signup_pass")
+            confirm_up = st.text_input("Confirm password", type="password", key="signup_confirm")
+            submitted_up = st.form_submit_button("Sign up")
+
+        if submitted_up:
+            users = st.session_state["users"]
+            if not email_up or not password_up or not confirm_up:
+                st.error("Vui lòng nhập đầy đủ Email và Password.")
+            elif "@" not in email_up:
+                st.error("Email không hợp lệ.")
+            elif email_up in users:
+                st.error("Email này đã được đăng ký.")
+            elif password_up != confirm_up:
+                st.error("Password nhập lại không khớp.")
+            else:
+                users[email_up] = password_up
+                st.session_state["users"] = users
+                st.session_state["user_data"][email_up] = {"schedules": []}
+                db_data = {
+                    "users": st.session_state["users"],
+                    "user_data": st.session_state["user_data"],
+                }
+                save_database(db_data)
+                st.success("Đăng ký thành công! Bạn có thể chuyển sang tab **Sign in** để đăng nhập.")
+
+# ======================
+# THANH ĐIỀU HƯỚNG 
+# ======================
+if st.session_state.get("current_user"):
+    menu_options = ["Trang chủ", "Giới thiệu", "Chức năng", "Lên lịch trình", "Hồ sơ"]
+    menu_icons = ["house", "info-circle", "check2-square", "calendar-check", "person-badge"]
+else:
+    menu_options = ["Trang chủ", "Giới thiệu", "Chức năng", "Lên lịch trình", "Sign in / Sign up"]
+    menu_icons = ["house", "info-circle", "check2-square", "calendar-check", "person-circle"]
+
+page = option_menu(
+    menu_title=None,
+    options=menu_options,
+    icons=menu_icons,
+    orientation="horizontal",
+    styles=MENU_STYLES, 
+)
+
+# ======================
+# BỘ ĐIỀU HƯỚNG TRANG
+# ======================
+page_container = st.container()
+
+with page_container:
+    if page == "Trang chủ":
+        page_trang_chu()
+    elif page == "Giới thiệu":
+        page_gioi_thieu()
+    elif page == "Chức năng":
+        page_chuc_nang()
+    elif page == "Lên lịch trình":
+        page_len_lich_trinh()
+    elif page == "Hồ sơ":
+        page_ho_so()
+    elif page == "Sign in / Sign up":
+        page_sign_in_up()
