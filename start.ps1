@@ -1,22 +1,21 @@
-# Script để chạy Flask backend và Streamlit cùng lúc
-# Run Flask backend and Streamlit together
+# Smart Travel - Startup Script
+# Chạy ứng dụng Smart Travel với Streamlit
 
-Write-Host "Starting SmartTravel with Flask backend..." -ForegroundColor Green
+Write-Host "🚀 Starting Smart Travel Application..." -ForegroundColor Green
+Write-Host ""
 
-# Start Flask backend in background
-Write-Host "Starting Flask backend on port 5000..." -ForegroundColor Cyan
-Start-Process python -ArgumentList "flask_backend.py" -WindowStyle Hidden
-
-# Wait for Flask to start
-Start-Sleep -Seconds 2
+# Check if running from correct directory
+if (-not (Test-Path "app.py")) {
+    Write-Host "❌ Error: app.py not found!" -ForegroundColor Red
+    Write-Host "Please run this script from the project root directory." -ForegroundColor Yellow
+    exit 1
+}
 
 # Start Streamlit
-Write-Host "Starting Streamlit on port 8501..." -ForegroundColor Cyan
-python -m streamlit run .\smarttravel.py --server.port 8501
+Write-Host "📱 Starting Streamlit app on port 8501..." -ForegroundColor Cyan
+Write-Host ""
 
-# Wait for Streamlit to start
-Start-Sleep -Seconds 2
-Write-Host "SmartTravel is running!" -ForegroundColor Green
+python -m streamlit run app.py --server.port 8501
 
-# Note: Press Ctrl+C to stop. You may need to manually kill the Flask process
-Write-Host "To stop Flask backend, run: Stop-Process -Name python -Force" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "✅ Application stopped." -ForegroundColor Green

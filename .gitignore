@@ -51,6 +51,11 @@ sessions/
 *.sqlite
 *.sqlite3
 smarttravel.db
+smarttravel_frontend.db
+
+# Backup files
+*.backup
+database.json.backup
 
 # Environment variables
 .env

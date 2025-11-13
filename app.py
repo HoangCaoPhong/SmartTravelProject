@@ -1,8 +1,9 @@
 import streamlit as st
 from datetime import time
-from streamlit_option_menu import option_menu
+# from streamlit_option_menu import option_menu  # Replaced with custom navigation
 import json
 import os
+import db_utils  # SQLite database utilities
 
 st.set_page_config(
     page_title="Smart 1-Day Trip Planner",
@@ -18,7 +19,108 @@ def load_css(file_name):
 load_css("style.css")
 
 # ======================
-# BIẾN CẤU HÌNH MENU
+# CUSTOM NAVIGATION FUNCTION
+# ======================
+def render_custom_nav(options, icons, active_page):
+    """Render custom navigation bar using Streamlit buttons with CSS styling"""
+    
+    # Add custom CSS for navigation buttons
+    st.markdown("""
+    <style>
+        /* Navigation Container */
+        div[data-testid="column"] {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Base Button Style - với màu chữ đen để thấy rõ trên nền trắng */
+        .stButton > button {
+            width: 100%;
+            background-color: transparent;
+            color: #0F172A !important;
+            border: 2px solid #CBD5E1 !important;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* Hover State */
+        .stButton > button:hover {
+            background-color: #EFF6FF;
+            border: 2px solid #2563EB !important;
+            color: #1D4ED8 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        /* Focus State */
+        .stButton > button:focus {
+            border: 2px solid #2563EB !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            color: #1D4ED8 !important;
+        }
+        
+        /* Active/Selected Button */
+        .stButton > button[kind="primary"] {
+            background-color: transparent !important;
+            color: #2563EB !important;
+            border: none !important;
+            border-bottom: 3px solid #2563EB !important;
+            border-radius: 0 !important;
+            font-weight: 600 !important;
+        }
+        
+        .stButton > button[kind="primary"]:hover {
+            background-color: #EFF6FF !important;
+            color: #1D4ED8 !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Fix button text - ensure no <p> tags styling issues */
+        .stButton > button p {
+            color: inherit !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .stButton > button[kind="primary"] p {
+            color: #2563EB !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create navigation bar
+    cols = st.columns(len(options))
+    
+    # Icon mapping
+    icon_map = {
+        "house": "🏠",
+        "info-circle": "ℹ️",
+        "check2-square": "✅",
+        "calendar-check": "📅",
+        "person-circle": "👤",
+        "person-badge": "👤"
+    }
+    
+    for i, (col, option, icon) in enumerate(zip(cols, options, icons)):
+        with col:
+            is_active = (option == active_page)
+            button_type = "primary" if is_active else "secondary"
+            icon_emoji = icon_map.get(icon, "📌")
+            
+            if st.button(f"{icon_emoji} {option}", 
+                         key=f"nav_{option}_{i}", 
+                         type=button_type,
+                         use_container_width=True):
+                st.session_state['current_page'] = option
+                st.rerun()
+
+# ======================
+# BIẾN CẤU HÌNH MENU (Legacy - không dùng nữa)
 # ======================
 MENU_STYLES = {
     "container": {
@@ -55,12 +157,24 @@ MENU_STYLES = {
 }
 
 # ======================
-# Json
+# DATABASE INITIALIZATION (SQLite)
 # ======================
+# Initialize database on first run
+db_utils.init_database()
+
+# Initialize session state
+if "current_user" not in st.session_state:
+    st.session_state["current_user"] = None
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = None
+if "latest_schedule" not in st.session_state:
+    st.session_state["latest_schedule"] = None
+
+# Legacy JSON database functions (kept for compatibility, can be removed later)
 DB_FILE = "database.json"
 
 def load_database():
-    """Tải CSDL từ file JSON."""
+    """Load database from JSON (legacy - for migration only)"""
     if not os.path.exists(DB_FILE):
         return {"users": {}, "user_data": {}}
     try:
@@ -69,21 +183,15 @@ def load_database():
     except json.JSONDecodeError:
         return {"users": {}, "user_data": {}}
 
-def save_database(data):
-    """Lưu toàn bộ CSDL ra file JSON."""
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-if "db_loaded" not in st.session_state:
-    db_data = load_database()
-    st.session_state["users"] = db_data.get("users", {})
-    st.session_state["user_data"] = db_data.get("user_data", {})
-    st.session_state["db_loaded"] = True
-
-if "current_user" not in st.session_state:
-    st.session_state["current_user"] = None
-if "latest_schedule" not in st.session_state:
-    st.session_state["latest_schedule"] = None
+# One-time migration from JSON to SQLite (if needed)
+if 'db_migrated' not in st.session_state:
+    if os.path.exists(DB_FILE):
+        success, message = db_utils.migrate_from_json(DB_FILE)
+        if success:
+            st.toast(f"✅ {message}", icon="✅")
+            # Rename old JSON file to backup
+            os.rename(DB_FILE, DB_FILE + ".backup")
+    st.session_state['db_migrated'] = True
 
 # ======================
 # Hàm tiện ích
@@ -396,28 +504,30 @@ def page_len_lich_trinh():
                 st.session_state["latest_schedule"] = schedule_data
 
                 current_user_email = st.session_state.get("current_user")
-                if current_user_email:
-                    is_already_saved = False
-                    if current_user_email in st.session_state["user_data"]:
-                        saved_ids = [
-                            s["id"]
-                            for s in st.session_state["user_data"][current_user_email]["schedules"]
-                        ]
-                        if schedule_data["id"] in saved_ids:
-                            is_already_saved = True
+                user_id = st.session_state.get("user_id")
+                
+                if current_user_email and user_id:
+                    # Check if already saved using SQLite
+                    existing_schedules = db_utils.get_user_schedules(user_id)
+                    is_already_saved = any(
+                        s['destination'] == ', '.join(schedule_data['destinations']) and
+                        s['start_time'] == schedule_data['start_time']
+                        for s in existing_schedules
+                    )
 
                     if is_already_saved:
                         st.success("✅ Lịch trình này đã được lưu trong hồ sơ của bạn.")
                     else:
                         if st.button("💾 Lưu lịch trình này vào hồ sơ"):
-                            st.session_state["user_data"][current_user_email]["schedules"].append(
-                                schedule_data
+                            # Save to SQLite
+                            db_utils.add_schedule(
+                                user_id=user_id,
+                                destination=', '.join(schedule_data['destinations']),
+                                budget=schedule_data.get('budget', 0),
+                                start_time=schedule_data['start_time'],
+                                end_time=schedule_data['end_time'],
+                                timeline=schedule_data['timeline']
                             )
-                            db_data = {
-                                "users": st.session_state["users"],
-                                "user_data": st.session_state["user_data"],
-                            }
-                            save_database(db_data)
                             st.success("Đã lưu lịch trình thành công!")
                             st.rerun()
 
@@ -437,47 +547,41 @@ def page_ho_so():
 
         st.markdown("### 🗂️ Lịch trình đã lưu")
 
-        user_email = st.session_state["current_user"]
+        user_id = st.session_state.get("user_id")
+        
+        if user_id:
+            schedules = db_utils.get_user_schedules(user_id)
+            
+            if not schedules:
+                st.info("Bạn chưa có lịch trình nào được lưu. Hãy qua trang **Lên lịch trình** để tạo và lưu nhé!")
+            else:
+                st.write(f"Bạn có **{len(schedules)}** lịch trình đã lưu:")
 
-        if (
-            user_email not in st.session_state["user_data"]
-            or not st.session_state["user_data"][user_email]["schedules"]
-        ):
-            st.info("Bạn chưa có lịch trình nào được lưu. Hãy qua trang **Lên lịch trình** để tạo và lưu nhé!")
-        else:
-            schedules = st.session_state["user_data"][user_email]["schedules"]
-            st.write(f"Bạn có **{len(schedules)}** lịch trình đã lưu:")
+                for schedule in schedules:
+                    title = f"Lịch trình: {schedule['destination']} ({schedule['start_time']} – {schedule['end_time']})"
 
-            for i in range(len(schedules) - 1, -1, -1):
-                schedule = schedules[i]
-                title = f"Lịch trình từ {schedule['start_location']} ({schedule['start_time']} – {schedule['end_time']})"
+                    with st.expander("📅 " + title):
+                        st.write(f"**Điểm đến:** {schedule['destination']}")
+                        st.write(f"**Ngân sách:** {schedule['budget']:,} VND")
+                        st.markdown("---")
+                        st.write("**Timeline chi tiết:**")
+                        for item in schedule["timeline"]:
+                            st.markdown(
+                                f"- **{item['place']}**: {item['arrive']} – {item['depart']}"
+                            )
+                        st.markdown("---")
 
-                with st.expander("📅 " + title):
-                    st.write(f"**Điểm đến:** {', '.join(schedule['destinations'])}")
-                    if schedule["food"]:
-                        st.write(f"**Món ăn:** {', '.join(schedule['food'])}")
-                    st.write(f"**Ngân sách:** {schedule['budget']:,} VND")
-                    st.markdown("---")
-                    st.write("**Timeline chi tiết:**")
-                    for item in schedule["timeline"]:
-                        st.markdown(
-                            f"- **{item['place']}**: {item['arrive']} – {item['depart']}"
-                        )
-                    st.markdown("---")
-
-                    if st.button("🗑️ Xóa lịch trình này", key=f"delete_{i}"):
-                        st.session_state["user_data"][user_email]["schedules"].pop(i)
-                        db_data = {
-                            "users": st.session_state["users"],
-                            "user_data": st.session_state["user_data"],
-                        }
-                        save_database(db_data)
-                        st.success("Đã xóa lịch trình.")
-                        st.rerun()
+                        if st.button("🗑️ Xóa lịch trình này", key=f"delete_{schedule['id']}"):
+                            if db_utils.delete_schedule(schedule['id'], user_id):
+                                st.success("Đã xóa lịch trình.")
+                                st.rerun()
+                            else:
+                                st.error("Lỗi khi xóa lịch trình.")
 
         st.markdown("---")
         if st.button("Đăng xuất (Log out)"):
             st.session_state["current_user"] = None
+            st.session_state["user_id"] = None
             st.rerun()
     else:
         st.error("Bạn cần đăng nhập để xem trang này.")
@@ -501,17 +605,18 @@ def page_sign_in_up():
             submitted_in = st.form_submit_button("Sign in")
 
         if submitted_in:
-            users = st.session_state["users"]
             if not email_in or not password_in:
                 st.error("Vui lòng nhập đầy đủ Email và Password.")
-            elif email_in not in users:
-                st.error("Tài khoản không tồn tại. Hãy chọn Sign up để đăng ký.")
-            elif users[email_in] != password_in:
-                st.error("Sai mật khẩu.")
             else:
-                st.session_state["current_user"] = email_in
-                st.success(f"Đăng nhập thành công! Xin chào **{email_in}** 🎉")
-                st.rerun()
+                # Verify using SQLite
+                success, user_id = db_utils.verify_user(email_in, password_in)
+                if success:
+                    st.session_state["current_user"] = email_in
+                    st.session_state["user_id"] = user_id
+                    st.success(f"Đăng nhập thành công! Xin chào **{email_in}** 🎉")
+                    st.rerun()
+                else:
+                    st.error("Email hoặc mật khẩu không đúng.")
 
     # SIGN UP
     with tab_signup:
@@ -522,29 +627,27 @@ def page_sign_in_up():
             submitted_up = st.form_submit_button("Sign up")
 
         if submitted_up:
-            users = st.session_state["users"]
             if not email_up or not password_up or not confirm_up:
                 st.error("Vui lòng nhập đầy đủ Email và Password.")
             elif "@" not in email_up:
                 st.error("Email không hợp lệ.")
-            elif email_up in users:
-                st.error("Email này đã được đăng ký.")
             elif password_up != confirm_up:
                 st.error("Password nhập lại không khớp.")
             else:
-                users[email_up] = password_up
-                st.session_state["users"] = users
-                st.session_state["user_data"][email_up] = {"schedules": []}
-                db_data = {
-                    "users": st.session_state["users"],
-                    "user_data": st.session_state["user_data"],
-                }
-                save_database(db_data)
-                st.success("Đăng ký thành công! Bạn có thể chuyển sang tab **Sign in** để đăng nhập.")
+                # Add user using SQLite
+                success, user_id = db_utils.add_user(email_up, password_up)
+                if success:
+                    st.success("Đăng ký thành công! Bạn có thể chuyển sang tab **Sign in** để đăng nhập.")
+                else:
+                    st.error("Email này đã được đăng ký.")
 
 # ======================
 # THANH ĐIỀU HƯỚNG 
 # ======================
+# Initialize current_page in session state
+if 'current_page' not in st.session_state:
+    st.session_state['current_page'] = "Trang chủ"
+
 if st.session_state.get("current_user"):
     menu_options = ["Trang chủ", "Giới thiệu", "Chức năng", "Lên lịch trình", "Hồ sơ"]
     menu_icons = ["house", "info-circle", "check2-square", "calendar-check", "person-badge"]
@@ -552,13 +655,11 @@ else:
     menu_options = ["Trang chủ", "Giới thiệu", "Chức năng", "Lên lịch trình", "Sign in / Sign up"]
     menu_icons = ["house", "info-circle", "check2-square", "calendar-check", "person-circle"]
 
-page = option_menu(
-    menu_title=None,
-    options=menu_options,
-    icons=menu_icons,
-    orientation="horizontal",
-    styles=MENU_STYLES, 
-)
+# Render custom navigation
+render_custom_nav(menu_options, menu_icons, st.session_state['current_page'])
+
+# Get current page
+page = st.session_state['current_page']
 
 # ======================
 # BỘ ĐIỀU HƯỚNG TRANG
