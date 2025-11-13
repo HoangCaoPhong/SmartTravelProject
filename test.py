@@ -5,11 +5,9 @@ import requests
 import folium
 from urllib.parse import quote
 
-# --- THÊM CÁC HẰNG SỐ BỊ THIẾU ---
 NOMINATIM = "https://nominatim.openstreetmap.org"
 OSRM = "https://router.project-osrm.org"
 UA = {"User-Agent": "OSM-Demo-Combined/1.0 (contact: your_email@example.com)"}
-# -----------------------------------
 
 def geocode(q):
     """
