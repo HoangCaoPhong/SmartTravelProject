@@ -285,7 +285,7 @@ def render_tao_danh_sach_goi_y():
                     if ALGO_AVAILABLE:
                         with st.spinner("🔄 Đang tính toán lộ trình tối ưu bằng AI..."):
                             try:
-                                # Load POIs - Dataset lớn với filter (4,601 POIs)
+                                # Load POIs - Dataset lớn với filter (7,743 POIs)
                                 csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "pois_hcm_large.csv")
                                 
                                 # Filter POIs: chỉ lấy tourism-related, rating >= 3.8, tối đa 500 POIs
@@ -318,19 +318,61 @@ def render_tao_danh_sach_goi_y():
                                     st.success(f"✅ Tìm thấy lộ trình với **{len(route)}** điểm đến!")
                                     
                                     total_cost = sum(r['travel_cost'] + r['entry_fee'] for r in route)
-                                    st.write(f"**📍 Xuất phát:** {start_location}")
-                                    st.write(f"**⏰ Thời gian:** {start_time.strftime('%H:%M')} – {end_time.strftime('%H:%M')}")
+                                    
+                                    # Styled info boxes
+                                    st.markdown("""
+                                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                                padding: 1.2rem; border-radius: 12px; color: white; margin-bottom: 1rem;'>
+                                        <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.3rem;'>📍 Xuất phát</div>
+                                        <div style='font-size: 1.1rem; font-weight: 600;'>{}</div>
+                                    </div>
+                                    """.format(start_location), unsafe_allow_html=True)
+                                    
+                                    col_time, col_budget = st.columns(2)
+                                    with col_time:
+                                        st.markdown("""
+                                        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                                                    padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
+                                            <div style='font-size: 0.85rem; opacity: 0.9;'>⏰ Thời gian</div>
+                                            <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{} – {}</div>
+                                        </div>
+                                        """.format(start_time.strftime('%H:%M'), end_time.strftime('%H:%M')), unsafe_allow_html=True)
+                                    with col_budget:
+                                        st.markdown("""
+                                        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                                                    padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
+                                            <div style='font-size: 0.85rem; opacity: 0.9;'>💰 Chi phí dự kiến</div>
+                                            <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{:,} VND</div>
+                                        </div>
+                                        """.format(total_cost), unsafe_allow_html=True)
                                     st.write(f"**💰 Tổng chi phí:** {total_cost:,.0f} / {budget:,.0f} VND")
                                     st.write(f"**🎯 Sở thích:** {', '.join(set(user_prefs))}")
                                     st.markdown("---")
                                     
-                                    # Display each stop
+                                    # Display each stop with address
                                     for i, stop in enumerate(route, 1):
                                         mode_icon = {"walking": "🚶", "motorbike": "🏍️", "taxi": "🚕"}.get(stop['mode'], "🚗")
+                                        lat = stop.get('lat', 0)
+                                        lon = stop.get('lon', 0)
+                                        
                                         with st.expander(
                                             f"{i}. {stop['name']} ({stop['arrive_time'].strftime('%H:%M')} - {stop['depart_time'].strftime('%H:%M')})",
                                             expanded=(i==1)
                                         ):
+                                            # Địa chỉ POI với link Google Maps
+                                            st.markdown(f"""
+                                            <div style='background: linear-gradient(120deg, #ffecd2 0%, #fcb69f 100%); 
+                                                        padding: 0.8rem; border-radius: 8px; margin-bottom: 0.8rem;'>
+                                                <div style='color: #1e293b; font-weight: 600; margin-bottom: 0.3rem;'>📍 {stop['name']}</div>
+                                                <div style='color: #475569; font-size: 0.85rem;'>Tọa độ: {lat:.4f}, {lon:.4f}</div>
+                                                <a href='https://www.google.com/maps/search/?api=1&query={lat},{lon}' 
+                                                   target='_blank' 
+                                                   style='color: #2563eb; font-size: 0.85rem; text-decoration: none; font-weight: 500;'>
+                                                   🗺️ Xem trên Google Maps →
+                                                </a>
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                            
                                             st.write(f"**🚗 Di chuyển:** {mode_icon} {stop['mode'].title()}")
                                             st.write(f"**⏰ Đến:** {stop['arrive_time'].strftime('%H:%M')}")
                                             st.write(f"**⏰ Rời:** {stop['depart_time'].strftime('%H:%M')}")
@@ -428,21 +470,70 @@ def render_tim_duong_di():
             else:
                 st.success(f"✅ Tìm thấy lộ trình {vehicle_icon} {mode}!")
                 
-                # Hiển thị thông tin tổng quan
+                # Hiển thị thông tin tổng quan với màu sắc đẹp
                 st.markdown("#### 📊 Thông tin tổng quan")
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("📏 Quãng đường", f"{result['route']['distance_km']:.1f} km")
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                padding: 1.2rem; border-radius: 12px; color: white; text-align: center;'>
+                        <div style='font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.3rem;'>📏 Quãng đường</div>
+                        <div style='font-size: 1.5rem; font-weight: 700;'>{result['route']['distance_km']:.1f} km</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 with col2:
-                    st.metric("⏱️ Thời gian", f"{result['route']['duration_min']:.0f} phút")
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                                padding: 1.2rem; border-radius: 12px; color: white; text-align: center;'>
+                        <div style='font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.3rem;'>⏱️ Thời gian</div>
+                        <div style='font-size: 1.5rem; font-weight: 700;'>{result['route']['duration_min']:.0f} phút</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 with col3:
                     hours = result['route']['duration_min'] / 60
-                    st.metric("🕐 Giờ", f"{hours:.1f}h")
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                                padding: 1.2rem; border-radius: 12px; color: white; text-align: center;'>
+                        <div style='font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.3rem;'>🕐 Tổng thời gian</div>
+                        <div style='font-size: 1.5rem; font-weight: 700;'>{hours:.1f}h</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
-                # Hiển thị địa chỉ đầy đủ
-                with st.expander("📍 Xem địa chỉ chi tiết"):
-                    st.write(f"**Điểm bắt đầu:** {result['start']['name']}")
-                    st.write(f"**Điểm kết thúc:** {result['end']['name']}")
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Hiển thị địa chỉ đầy đủ với màu gradient
+                st.markdown(f"""
+                <div style='background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); 
+                            padding: 1rem; border-radius: 12px; margin-bottom: 1rem;'>
+                    <div style='color: #1e293b; font-weight: 600; margin-bottom: 0.5rem;'>📍 Địa chỉ chi tiết</div>
+                    <div style='color: #475569; margin-bottom: 0.3rem;'><strong>Điểm bắt đầu:</strong> {result['start']['name']}</div>
+                    <div style='color: #475569;'><strong>Điểm kết thúc:</strong> {result['end']['name']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Thêm bản đồ OSM
+                st.markdown("#### 🗺️ Bản đồ đường đi")
+                lat1, lon1 = result['start']['lat'], result['start']['lon']
+                lat2, lon2 = result['end']['lat'], result['end']['lon']
+                center_lat = (lat1 + lat2) / 2
+                center_lon = (lon1 + lon2) / 2
+                
+                # Tạo iframe OpenStreetMap với route
+                osm_url = f"https://www.openstreetmap.org/directions?engine=fossgis_osrm_{vehicle_type}&route={lat1}%2C{lon1}%3B{lat2}%2C{lon2}#map=13/{center_lat}/{center_lon}"
+                
+                st.markdown(f"""
+                <div style='border: 3px solid #2563eb; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;'>
+                    <iframe width='100%' height='450' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' 
+                            src='{osm_url}&amp;output=embed' 
+                            style='border-radius: 12px;'></iframe>
+                </div>
+                <div style='text-align: center; margin-top: 0.5rem;'>
+                    <a href='{osm_url}' target='_blank' 
+                       style='color: #2563eb; text-decoration: none; font-weight: 600;'>
+                       🔗 Mở bản đồ đầy đủ trong tab mới →
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 # Hiển thị chỉ dẫn từng bước
                 st.markdown("#### 🛣️ Chỉ dẫn đường đi")

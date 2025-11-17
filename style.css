@@ -58,6 +58,41 @@ button[style*="color:#000"] {
     color: white !important;
 }
 
+/* Fix expander/dropdown text colors */
+[data-testid="stExpander"] summary {
+    background-color: #2563EB !important;
+    color: white !important;
+    border-radius: 8px;
+    padding: 0.75rem 1rem !important;
+}
+
+[data-testid="stExpander"] summary:hover {
+    background-color: #1D4ED8 !important;
+    color: white !important;
+}
+
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] summary div,
+[data-testid="stExpander"] summary span {
+    color: white !important;
+}
+
+/* Fix selectbox/dropdown options */
+[role="listbox"] [role="option"] {
+    color: #0F172A !important;
+    background-color: white !important;
+}
+
+[role="listbox"] [role="option"]:hover {
+    background-color: #EFF6FF !important;
+    color: #0F172A !important;
+}
+
+[role="listbox"] [role="option"][aria-selected="true"] {
+    background-color: #2563EB !important;
+    color: white !important;
+}
+
 /* Fix form submit buttons with proper colors */
 [data-testid="stForm"] button[type="submit"],
 [data-testid="stFormSubmitButton"] button,
