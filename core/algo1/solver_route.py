@@ -90,11 +90,15 @@ def plan_route(pois, user_prefs=None, start_loc=DEFAULT_START,
         route.append({
             "id": best_poi["id"],
             "name": best_poi["name"],
+            "lat": best_poi["lat"],
+            "lon": best_poi["lon"],
             "mode": best_mode,
             "arrive_time": arrive,
             "depart_time": finish,
             "travel_cost": cost,
-            "entry_fee": best_poi["entry_fee"]
+            "entry_fee": best_poi["entry_fee"],
+            "visit_duration_min": best_poi["visit_duration_min"],
+            "rating": best_poi.get("rating", 0)
         })
 
         visited.add(best_poi["id"])
