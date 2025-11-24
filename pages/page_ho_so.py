@@ -1,6 +1,7 @@
 """Trang Hồ sơ"""
 import streamlit as st
 import db_utils
+import time
 
 
 def page_ho_so():
@@ -58,6 +59,9 @@ def page_ho_so():
                 
             st.session_state["current_user"] = None
             st.session_state["user_id"] = None
+            
+            # Wait for cookie deletion to propagate
+            time.sleep(1)
             st.rerun()
     else:
         st.error("Bạn cần đăng nhập để xem trang này.")
