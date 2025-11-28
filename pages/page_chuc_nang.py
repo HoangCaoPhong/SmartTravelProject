@@ -8,18 +8,26 @@ import os
 
 # Import algo1 modules (POI optimization)
 try:
-    from core.algo1 import load_pois, plan_route
+    from core.route_optimization import load_pois, plan_route
     ALGO_AVAILABLE = True
 except ImportError:
     ALGO_AVAILABLE = False
-    st.warning("⚠️ Không tìm thấy module algo1. Sử dụng chế độ demo.")
+    st.warning("⚠️ Không tìm thấy module route_optimization. Sử dụng chế độ demo.")
 
 # Import algo2 modules (Routing/Navigation)
 try:
-    from core.algo2 import get_directions
+    from core.map_integration import get_directions
+    from core.map_integration.routing import geocode
     ROUTING_AVAILABLE = True
 except ImportError:
     ROUTING_AVAILABLE = False
+
+# Import weather service
+try:
+    from core.weather_service.weather import get_weather
+    WEATHER_AVAILABLE = True
+except ImportError:
+    WEATHER_AVAILABLE = False
 
 
 def page_chuc_nang():
@@ -66,32 +74,32 @@ def page_chuc_nang():
     selected = st.session_state['selected_function']
     st.info(f"✨ Đang hiển thị: **{selected}**")
     
-    # 1. TẠO LỊCH TRÌNH GỢI Ý (Algo1) - Sử dụng algo1 để tối ưu lịch trình
+    # 1. TẠO LỊCH TRÌNH GỢI Ý (Route Optimization)
     if selected == "Tạo lịch trình gợi ý":
         render_tao_danh_sach_goi_y()
     
-    # 2. TÌM ĐƯỜNG ĐI (Algo2)
+    # 2. TÌM ĐƯỜNG ĐI (Map Integration)
     elif selected == "Tìm đường đi":
         render_tim_duong_di()
     
-    # 3. TÌM VỊ TRÍ ẢNH (Algo3)
+    # 3. TÌM VỊ TRÍ ẢNH (Image Recognition)
     elif selected == "Tìm vị trí ảnh":
         render_nhan_dien_anh()
     
-    # 4. BÁO THỜI TIẾT VỊ TRÍ (Algo4)
+    # 4. BÁO THỜI TIẾT VỊ TRÍ (Weather Service)
     elif selected == "Báo thời tiết vị trí":
         render_bao_thoi_tiet()
     
-    # 5. GỢI Ý ĐỊA ĐIỂM (Algo5) - Chỉ gợi ý danh sách địa điểm
+    # 5. GỢI Ý ĐỊA ĐIỂM (Recommendation)
     elif selected == "Gợi ý địa điểm":
         render_goi_y_dia_diem()
 
 
 def render_tao_danh_sach_goi_y():
-    """Render phần Tạo lịch trình gợi ý - TÍCH HỢP ALGO1"""
+    """Render phần Tạo lịch trình gợi ý - TÍCH HỢP ROUTE OPTIMIZATION"""
     st.markdown("### 🗓️ Tạo lịch trình gợi ý")
     st.markdown(
-        "<p class='feature-muted'>🎯 Nhập sở thích và yêu cầu, thuật toán AI (Algo1) sẽ tối ưu lịch trình cho bạn!</p>",
+        "<p class='feature-muted'>🎯 Nhập sở thích và yêu cầu, thuật toán AI sẽ tối ưu lịch trình cho bạn!</p>",
         unsafe_allow_html=True,
     )
     
@@ -380,7 +388,7 @@ def render_tao_danh_sach_goi_y():
 
 
 def render_tim_duong_di():
-    """Render phần Tìm đường đi - TÍCH HỢP ALGO2"""
+    """Render phần Tìm đường đi - TÍCH HỢP MAP INTEGRATION"""
     st.markdown("### 🚗 Tìm đường đi")
     st.markdown(
         "<p class='feature-muted'>Tìm đường đi tối ưu giữa các địa điểm với OpenStreetMap.</p>",
@@ -624,14 +632,41 @@ def render_bao_thoi_tiet():
         submitted = st.form_submit_button("🌤️ Xem thời tiết", width='stretch')
     
     if submitted:
-        st.info("💡 Tính năng đang được phát triển. Sẽ tích hợp API thời tiết trong phiên bản tiếp theo.")
-        st.write(f"**Vị trí:** {location}")
+        if not WEATHER_AVAILABLE:
+             st.error("❌ Module thời tiết chưa được cài đặt.")
+             return
+
+        with st.spinner(f"🔍 Đang tìm kiếm '{location}'..."):
+            geo = geocode(location)
+        
+        if not geo:
+            st.error("❌ Không tìm thấy địa điểm. Vui lòng thử lại.")
+        else:
+            lat, lon, name = geo
+            st.success(f"📍 Đã tìm thấy: **{name}**")
+            
+            with st.spinner("🌤️ Đang lấy dữ liệu thời tiết..."):
+                weather = get_weather(lat, lon)
+            
+            if not weather:
+                st.warning("⚠️ Không thể lấy dữ liệu thời tiết. Vui lòng kiểm tra API Key.")
+                st.info("💡 Bạn cần cấu hình `OPENWEATHER_API_KEY` trong `config.py`.")
+            else:
+                # Display weather info
+                st.markdown("#### 🌤️ Thông tin thời tiết")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("🌡️ Nhiệt độ", f"{weather['temp']:.1f}°C", f"Cảm giác: {weather['feels_like']:.1f}°C")
+                    st.metric("💧 Độ ẩm", f"{weather['humidity']}%")
+                with col2:
+                    st.metric("☁️ Tình trạng", weather['description'].title())
+                    st.metric("💨 Gió", f"{weather['wind_speed']} m/s")
     else:
         st.caption("⏳ Nhập vị trí và bấm nút để xem thời tiết.")
 
 
 def render_goi_y_dia_diem():
-    """Render phần Gợi ý địa điểm - Algo5: Chỉ gợi ý danh sách địa điểm"""
+    """Render phần Gợi ý địa điểm - Recommendation: Chỉ gợi ý danh sách địa điểm"""
     st.markdown("### 📍 Gợi ý địa điểm")
     st.markdown(
         "<p class='feature-muted'>🎯 Chọn sở thích của bạn để nhận danh sách địa điểm phù hợp.</p>",

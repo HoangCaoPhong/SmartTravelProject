@@ -3,7 +3,7 @@
 ## 🎯 Tổng Quan
 Project **WindyAI** (tiền thân là Smart Travel Optimization) được tổ chức lại theo cấu trúc modular, tách biệt rõ ràng giữa:
 - **Web Interface** (Streamlit)
-- **Algorithm Core** (Algo1)
+- **Algorithm Core** (Route Optimization, Mapping, etc.)
 - **Data & Database**
 - **Services** (Database & Utilities)
 
@@ -19,17 +19,33 @@ WindyAI/
 ├── 📄 pages/                      # Modular pages (Web interface)
 │   ├── page_trang_chu.py         # Trang chủ
 │   ├── page_gioi_thieu.py        # Giới thiệu (Về dự án & Thành viên)
-│   ├── page_chuc_nang.py         # ⭐ Chức năng (tích hợp algo1)
+│   ├── page_chuc_nang.py         # ⭐ Chức năng (tích hợp các thuật toán)
 │   ├── page_ho_so.py             # Hồ sơ người dùng
 │   └── page_sign_in_up.py        # Đăng nhập/Đăng ký
 │
-├── 🧠 core/                       # Algo1 - Thuật toán tối ưu
-│   ├── solver_route.py           # ⭐ Main algorithm (Greedy + Lookahead)
-│   ├── scorer.py                 # Đánh giá và chấm điểm POI
-│   ├── optimizer.py              # Tối ưu hậu kỳ (2-opt)
-│   ├── utils_geo.py              # Tính khoảng cách, thời gian, chi phí
-│   ├── config.py                 # Cấu hình (speeds, costs, weights)
-│   └── __init__.py
+├── 🧠 core/                       # Core Algorithms
+│   ├── route_optimization/       # (Algo1) Tối ưu lịch trình
+│   │   ├── solver_route.py       # ⭐ Main algorithm (Greedy + Lookahead)
+│   │   ├── scorer.py             # Đánh giá và chấm điểm POI
+│   │   ├── optimizer.py          # Tối ưu hậu kỳ (2-opt)
+│   │   ├── utils_geo.py          # Tính khoảng cách, thời gian, chi phí
+│   │   ├── config.py             # Cấu hình (speeds, costs, weights)
+│   │   └── __init__.py
+│   │
+│   ├── map_integration/          # (Algo2) Bản đồ & Chỉ đường
+│   │   ├── routing.py            # OSRM Routing
+│   │   ├── mapping.py            # Folium Map generation
+│   │   └── __init__.py
+│   │
+│   ├── image_recognition/        # (Algo3) Nhận diện ảnh
+│   │   └── __init__.py
+│   │
+│   ├── weather_service/          # (Algo4) Dịch vụ thời tiết
+│   │   ├── weather.py
+│   │   └── __init__.py
+│   │
+│   └── recommendation/           # (Algo5) Gợi ý địa điểm
+│       └── __init__.py
 │
 ├── 🛠️ services/                   # Core Services
 │   ├── db.py                     # Database operations (Supabase)
@@ -72,24 +88,24 @@ WindyAI/
 ```
 app.py
   ├── pages/page_trang_chu.py    → Home page
-  ├── pages/page_chuc_nang.py    → ⭐ Tích hợp algo1
-  │     └── calls: core/solver_route.plan_route()
+  ├── pages/page_chuc_nang.py    → ⭐ Tích hợp thuật toán
+  │     └── calls: core/route_optimization/solver_route.plan_route()
   └── pages/page_ho_so.py        → Profile & saved schedules
 ```
 
-### 2. **Algorithm Flow (Algo1)**
+### 2. **Algorithm Flow (Route Optimization)**
 ```
 pages/page_chuc_nang.py
-  └── core/solver_route.plan_route()
+  └── core/route_optimization/solver_route.plan_route()
         ├── load_pois() from data/pois_hcm_large.csv
-        ├── core/scorer.score_candidate()
-        ├── core/utils_geo.travel_info()
+        ├── core/route_optimization/scorer.score_candidate()
+        ├── core/route_optimization/utils_geo.travel_info()
         └── Return optimized route
 ```
 
 ### 3. **Data Flow**
 ```
-User Input → page_chuc_nang.py → algo1 → Optimized Route → Display
+User Input → page_chuc_nang.py → Route Optimization → Optimized Route → Display
                                     ↓
                             Save to Supabase (via services/db.py)
 ```
@@ -107,9 +123,9 @@ python -m streamlit run app.py
 
 ---
 
-## ⚙️ Cấu Hình Algo1
+## ⚙️ Cấu Hình Route Optimization
 
-File `core/algo1/config.py` chứa các tham số:
+File `core/route_optimization/config.py` chứa các tham số:
 ```python
 SPEEDS_KMH = {"walking": 5.0, "motorbike": 25.0, "taxi": 35.0}
 COST_PER_KM = {"walking": 0.0, "motorbike": 2000.0, "taxi": 12000.0}
@@ -149,5 +165,5 @@ supabase
 
 ---
 
-**Last Updated:** 2025-05-23
-**Version:** 2.2 (Refactored Structure)
+**Last Updated:** 2025-11-28
+**Version:** 2.3 (Renamed Core Modules)
