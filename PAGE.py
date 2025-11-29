@@ -37,17 +37,15 @@ MEMBERS = [
     {
         "mssv": "24127570", "name": "Võ Thúc Trí", "role": "Member",
         "tech_role": "AI & Backend", "email": " vttri2418@clc.fitus.edu.vn",
-        "hobby": "Game",
+
     },
     {
         "mssv": "24127068", "name": "Nguyễn Trung Kiên", "role": "Member",
         "tech_role": "Data & Fullstack", "email": "....",
-        "hobby": "Gym",
     },
     {
         "mssv": "24127569", "name": "Nguyễn Minh Trí", "role": "Member",
         "tech_role": "UX/UI & Frontend", "email": "mntri2437@clc.fitus.edu.vn",
-        "hobby": "Vẽ, Thiết kế đồ họa, Phim ảnh",
     },
 ]
 
