@@ -1,4 +1,4 @@
-"""Trang Giới thiệu - Smart Travel Planner (PRO VERSION WITH DB & ADMIN)"""
+"""Trang Giới thiệu - Smart Travel Planner """
 import streamlit as st
 import base64
 import os
@@ -390,7 +390,7 @@ def render_contact_section():
 def render_admin_dashboard():
     with st.expander("🔐 ADMIN DASHBOARD (Dành cho Quản trị viên)"):
         password = st.text_input("Nhập mật khẩu quản trị", type="password", key="admin_pass")
-        if password == "admin123":
+        if password == "windyai":
             st.success("Đăng nhập thành công! ✅")
             df = get_all_feedback()
             if not df.empty:
