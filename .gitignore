@@ -9,7 +9,8 @@ env/
 ENV/
 __pycache__/
 *.py[cod]
-*$py.class
+*.class
+*.pyc
 
 # ------------------------------
 # Ignore system files
