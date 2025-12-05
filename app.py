@@ -16,7 +16,7 @@ from pages.page_sign_in_up import page_sign_in_up
 
 st.set_page_config(
     page_title="WindyAI - Smart Travel Website",
-    page_icon="assets/logo/Final_WindyAI_Logo_WindyAI_Logo_(RemoveBackgroud).png.png",
+    page_icon="assets/logo/logo.png",
     layout="wide",  
     initial_sidebar_state="collapsed"
 )
@@ -253,7 +253,7 @@ def minutes_to_str(m: int) -> str:
 # SIDEBAR
 # ======================
 with st.sidebar:
-    st.image("assets/logo/Final_WindyAI_Logo_WindyAI_Logo_(RemoveBackgroud).png.png", width=120)
+    st.image("assets/logo/logo.png", width=120)
     st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
     st.markdown("---")
     st.sidebar.caption("© 2025 WindyAI")

@@ -1,4 +1,4 @@
-"""Trang Trang chủ với Video Background"""
+`"""Trang Trang chủ với Video Background"""
 import streamlit as st
 import base64
 import os
@@ -39,20 +39,21 @@ def render_hero_section(filename, content_html, height="85vh", overlay_opacity=0
     media_html = ""
     if mime.startswith("video"):
         media_html = f"""
-            <video class="video-bg" autoplay muted loop playsinline>
+            <video class="video-bg" autoplay muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
                 <source src="data:{mime};base64,{b64}" type="{mime}">
             </video>
         """
     else:
+        # Use div with background-image for better stability
         media_html = f"""
-            <img class="video-bg" src="data:{mime};base64,{b64}" alt="Background">
+            <div class="video-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('data:{mime};base64,{b64}'); background-size: cover; background-position: center; z-index: 0;"></div>
         """
 
     st.markdown(f"""
-    <div class="video-section" style="min-height: {height};">
+    <div class="video-section" style="min-height: {height}; position: relative; overflow: hidden;">
         {media_html}
-        <div class="overlay-dark" style="background: rgba(0,0,0,{overlay_opacity});"></div>
-        <div class="content-box">
+        <div class="overlay-dark" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,{overlay_opacity}); z-index: 1;"></div>
+        <div class="content-box" style="position: relative; z-index: 2;">
             {content_html}
         </div>
     </div>
@@ -66,13 +67,9 @@ def page_trang_chu():
     <style>
         /* Ẩn padding mặc định của block-container để video tràn viền đẹp hơn */
         .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
             padding-top: 1rem !important;
             padding-bottom: 2rem !important;
             max-width: 100% !important;
-            background-color: transparent !important; /* Để thấy nền tối của app */
-            box-shadow: none !important;
         }
         
         .video-section {
@@ -86,6 +83,7 @@ def page_trang_chu():
             border-radius: 20px;
             margin-bottom: 2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background-color: #1e293b; /* Fallback color */
         }
         
         .video-bg {
@@ -188,7 +186,7 @@ def page_trang_chu():
     """, unsafe_allow_html=True)
 
     # --- SECTION 1: HERO (City Night) ---
-    render_hero_section("section-1.png", """
+    render_hero_section("section-1_optimized.jpg", """
         <div class="badge-pill">✨ WindyAI - Smart Travel Website</div>
         <h1 class="home-title">Lên kế hoạch du lịch<br>thông minh với AI</h1>
         <p class="home-subtitle">
@@ -198,7 +196,7 @@ def page_trang_chu():
     """, overlay_opacity=0.5)
 
     # --- SECTION 2: HIGHLIGHTS (Global Connection) ---
-    render_hero_section("section-2.png", """
+    render_hero_section("section-2_optimized.jpg", """
         <h2 style="font-size: 2.5rem; margin-bottom: 2rem; font-weight: 700;">Điểm nổi bật</h2>
         <div class="flex-row">
             <div class="feature-box">
