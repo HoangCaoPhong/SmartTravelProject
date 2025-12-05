@@ -21,7 +21,7 @@ supabase: Client = None
 if SUPABASE_URL and SUPABASE_KEY:
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        print(f"✅ Connected to Supabase: {SUPABASE_URL}")
+        print("✅ Connected to Supabase")
     except Exception as e:
         print(f"❌ Failed to connect to Supabase: {e}")
 

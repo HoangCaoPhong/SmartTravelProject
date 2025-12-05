@@ -59,22 +59,35 @@ class ImagePredictor:
             outputs = self.model(img_tensor)
             probs = torch.softmax(outputs, dim=1)
             conf, pred_idx = torch.max(probs, 1)
-            pred_idx = pred_idx.item()
-            conf = conf.item()
+            # Cast to int/float explicitly to satisfy type checkers
+            pred_idx_val = int(pred_idx.item())
+            conf_val = float(conf.item())
 
-        label = self.class_names[pred_idx]
-        return label, conf
+        label = self.class_names[pred_idx_val]
+        return label, conf_val
 
     def predict_pil_image(self, img: Image.Image):
         """Dự đoán từ PIL Image (dùng cho Streamlit)."""
         img = img.convert("RGB")
-        tensor = self.preprocess(img).unsqueeze(0).to(self.device)
+        img_tensor = self.preprocess(img)
+        
+        # Ensure type checker knows this is a Tensor
+        if not isinstance(img_tensor, torch.Tensor):
+            raise TypeError("Preprocessing failed to return a Tensor")
+            
+        tensor = img_tensor.unsqueeze(0).to(self.device)
         return self._predict_tensor(tensor)
 
     def predict_image_bytes(self, image_bytes: bytes):
         """Dự đoán từ bytes ảnh."""
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        tensor = self.preprocess(img).unsqueeze(0).to(self.device)
+        img_tensor = self.preprocess(img)
+        
+        # Ensure type checker knows this is a Tensor
+        if not isinstance(img_tensor, torch.Tensor):
+            raise TypeError("Preprocessing failed to return a Tensor")
+
+        tensor = img_tensor.unsqueeze(0).to(self.device)
         return self._predict_tensor(tensor)
 
 # Singleton instance accessor
