@@ -7,7 +7,7 @@ import time
 def show_schedule_details(schedule, user_id):
     st.subheader(f"📍 {schedule['destination']}")
     st.caption(f"📅 {schedule['start_time']} – {schedule['end_time']}")
-    st.write(f"💰 **Ngân sách:** {schedule['budget']:,} VND")
+    st.write(f"💰 **Ngân sách:** {schedule['budget']:,.0f} VND")
     
     st.markdown("---")
     st.markdown("#### 📝 Timeline chi tiết")
@@ -30,12 +30,12 @@ def show_schedule_details(schedule, user_id):
             if mode:
                 details.append(f"🚗 {mode.title()}")
             if travel_cost > 0:
-                details.append(f"💵 Đi lại: {travel_cost:,}đ")
+                details.append(f"💵 Đi lại: {travel_cost:,.0f}đ")
             if entry_fee > 0:
-                details.append(f"🎫 Vé: {entry_fee:,}đ")
+                details.append(f"🎫 Vé: {entry_fee:,.0f}đ")
                 
             if details:
-                st.markdown(f"<span style='color:gray; font-size:0.9em'>{' | '.join(details)}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color:#E2E8F0; font-size:0.95em; font-weight: 500;'>{' | '.join(details)}</span>", unsafe_allow_html=True)
             st.divider()
 
     if st.button("🗑️ Xóa lịch trình này", key=f"delete_modal_{schedule['id']}", type="primary"):
@@ -81,7 +81,7 @@ def page_ho_so():
                         col_info, col_btn = st.columns([3, 1])
                         with col_info:
                             st.markdown(f"##### 🗺️ {schedule['destination']}")
-                            st.caption(f"📅 {schedule['start_time']} – {schedule['end_time']} | 💰 {schedule['budget']:,} VND")
+                            st.caption(f"📅 {schedule['start_time']} – {schedule['end_time']} | 💰 {schedule['budget']:,.0f} VND")
                         with col_btn:
                             if st.button("👁️ Xem chi tiết", key=f"btn_view_{schedule['id']}", use_container_width=True):
                                 show_schedule_details(schedule, user_id)
