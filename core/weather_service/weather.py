@@ -35,8 +35,8 @@ def get_weather_description(code):
         85: "Mưa tuyết nhẹ",
         86: "Mưa tuyết nặng",
         95: "Dông nhẹ hoặc vừa",
-        96: "Dông có mưa đá nhẹ",
-        99: "Dông có mưa đá nặng"
+        96: "Dông mạnh",
+        99: "Dông rất mạnh"
     }
     return wmo_codes.get(code, "Không xác định")
 
