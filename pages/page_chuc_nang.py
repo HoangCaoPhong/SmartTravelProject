@@ -702,7 +702,7 @@ def render_bao_thoi_tiet():
     with st.form("weather_form"):
         location = st.text_input(
             "📍 Vị trí",
-            value="TP.HCM, Việt Nam",
+            value="Hồ Chí Minh",
             help="Nhập tên địa điểm hoặc tọa độ"
         )
         submitted = st.form_submit_button("🌤️ Xem thời tiết", width='stretch')

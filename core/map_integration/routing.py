@@ -70,6 +70,9 @@ def geocode(location_name):
             return None
         return None
 
+    # 0. Chuẩn hóa tên địa điểm phổ biến
+    location_name = location_name.replace("TP.HCM", "Hồ Chí Minh").replace("TPHCM", "Hồ Chí Minh").replace("Sài Gòn", "Hồ Chí Minh")
+
     # 1. Thử tìm chính xác
     res = _search(location_name)
     if res: return res
