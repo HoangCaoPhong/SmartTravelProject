@@ -198,7 +198,12 @@ def render_tao_danh_sach_goi_y():
                             # Load POIs - Dataset lớn với filter (7,743 POIs)
                             csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "pois_hcm_large.csv")
                             
-                            # Filter POIs: chỉ lấy tourism-related, rating >= 3.8, tối đa 500 POIs
+                            if not os.path.exists(csv_path):
+                                st.error(f"❌ Không tìm thấy file dữ liệu: {csv_path}")
+                                st.info("Vui lòng kiểm tra lại thư mục data trên server.")
+                                st.stop()
+
+                            # Filter POIs: chỉ lấy tourism-related, rating >= 3.5, tối đa 500 POIs
                             tourism_tags = [
                                 "food", "restaurant", "cafe", "park", "nature", 
                                 "museum", "history", "entertainment", "shopping", 
@@ -207,9 +212,13 @@ def render_tao_danh_sach_goi_y():
                             pois = load_pois(
                                 csv_path, 
                                 filter_tags=tourism_tags,
-                                min_rating=3.8,
+                                min_rating=3.5,
                                 max_pois=500  # Giới hạn để thuật toán chạy nhanh
                             )
+                            
+                            if not pois:
+                                st.error("❌ Không tìm thấy địa điểm nào phù hợp trong dữ liệu.")
+                                st.stop()
                             
                             # Determine start location coordinates
                             start_coords = (10.7769, 106.7006) # Default: Dinh Độc Lập

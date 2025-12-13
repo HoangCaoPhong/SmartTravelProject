@@ -46,7 +46,7 @@ dist/
 # ------------------------------
 # Ignore any local data/test files
 # ------------------------------
-data/
-*.csv
+# data/
+# *.csv
 *.json
 *.db
